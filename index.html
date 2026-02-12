@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dev Tools</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- jsdiff for File Diff tool -->
+  <script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-inner">
+        <h1 class="logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+          Dev Tools
+        </h1>
+        <nav class="tabs" role="tablist">
+          <button class="tab active" role="tab" data-tab="gcp-parser" aria-selected="true">GCP Log Parser</button>
+          <button class="tab" role="tab" data-tab="json-viewer" aria-selected="false">JSON Viewer</button>
+          <button class="tab" role="tab" data-tab="diff-tool" aria-selected="false">File Diff</button>
+          <button class="tab" role="tab" data-tab="curl-parser" aria-selected="false">cURL Parser</button>
+          <button class="tab" role="tab" data-tab="cookie-parser" aria-selected="false">Cookie Parser</button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+
+      <!-- ============ GCP Log Parser ============ -->
+      <section id="gcp-parser" class="panel active" role="tabpanel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">GCP Log Parser</h2>
+            <p class="panel-description">Paste GCP JSON logs to extract and format the message payload.</p>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-outline" id="gcp-sample-btn">Load Sample</button>
+            <button class="btn btn-primary" id="gcp-parse-btn">Parse</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <label class="label" for="gcp-input">Raw GCP Log JSON</label>
+          <textarea id="gcp-input" class="textarea code" rows="12" placeholder="Paste your GCP log JSON here..." spellcheck="false"></textarea>
+        </div>
+
+        <div id="gcp-output-section" class="card hidden">
+          <div class="card-header">
+            <span class="label">Extracted Message Payload</span>
+            <div class="btn-group">
+              <button class="btn btn-ghost btn-sm" id="gcp-copy-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy
+              </button>
+              <button class="btn btn-ghost btn-sm" id="gcp-clear-btn">Clear</button>
+            </div>
+          </div>
+          <pre id="gcp-output" class="output code"></pre>
+        </div>
+
+        <div id="gcp-error" class="error-msg hidden"></div>
+      </section>
+
+      <!-- ============ JSON Viewer ============ -->
+      <section id="json-viewer" class="panel" role="tabpanel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">JSON Viewer</h2>
+            <p class="panel-description">Paste any JSON to view it formatted or as an interactive tree.</p>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-outline" id="jv-sample-btn">Load Sample</button>
+            <button class="btn btn-primary" id="jv-format-btn">Format</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <label class="label" for="jv-input">JSON Input</label>
+          <textarea id="jv-input" class="textarea code" rows="10" placeholder="Paste your JSON here..." spellcheck="false"></textarea>
+        </div>
+
+        <div id="jv-output-section" class="card hidden">
+          <div class="card-header">
+            <div class="view-tabs">
+              <button class="view-tab active" data-view="formatted">Formatted</button>
+              <button class="view-tab" data-view="tree">Tree</button>
+            </div>
+            <div class="btn-group">
+              <div class="search-box" id="jv-search-box" style="display:none;">
+                <input type="text" id="jv-search-input" class="input input-sm" placeholder="Search keys or values...">
+                <span id="jv-search-count" class="badge"></span>
+                <button class="btn btn-ghost btn-sm search-nav-btn" id="jv-search-prev" title="Previous match (Shift+Enter)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                </button>
+                <button class="btn btn-ghost btn-sm search-nav-btn" id="jv-search-next" title="Next match (Enter)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+              </div>
+              <button class="btn btn-ghost btn-sm" id="jv-search-toggle">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                Search
+              </button>
+              <button class="btn btn-ghost btn-sm" id="jv-copy-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy
+              </button>
+              <button class="btn btn-ghost btn-sm" id="jv-minify-btn">Minify</button>
+              <button class="btn btn-ghost btn-sm" id="jv-clear-btn">Clear</button>
+            </div>
+          </div>
+
+          <!-- JSON Path breadcrumb -->
+          <div id="jv-path-bar" class="path-bar hidden">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            <code id="jv-path-text"></code>
+          </div>
+
+          <!-- Formatted view -->
+          <div id="jv-formatted-view" class="view-panel active">
+            <pre id="jv-formatted-output" class="output code"></pre>
+          </div>
+
+          <!-- Tree view -->
+          <div id="jv-tree-view" class="view-panel">
+            <div class="tree-controls">
+              <button class="btn btn-ghost btn-sm" id="jv-expand-all">Expand All</button>
+              <button class="btn btn-ghost btn-sm" id="jv-collapse-all">Collapse All</button>
+            </div>
+            <div id="jv-tree-output" class="tree-container"></div>
+          </div>
+        </div>
+
+        <div id="jv-error" class="error-msg hidden"></div>
+      </section>
+
+      <!-- ============ File Diff ============ -->
+      <section id="diff-tool" class="panel" role="tabpanel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">File Diff</h2>
+            <p class="panel-description">Compare two files side by side with highlighted differences.</p>
+          </div>
+          <div class="btn-group">
+            <select id="diff-format" class="select">
+              <option value="text">Plain Text</option>
+              <option value="json">JSON</option>
+            </select>
+            <button class="btn btn-ghost" id="diff-swap-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+              Swap
+            </button>
+            <button class="btn btn-primary" id="diff-compare-btn">Compare</button>
+          </div>
+        </div>
+
+        <div class="diff-inputs">
+          <div class="card diff-card">
+            <label class="label" for="diff-left">File A (Original)</label>
+            <textarea id="diff-left" class="textarea code" rows="14" placeholder="Paste first file content..." spellcheck="false"></textarea>
+          </div>
+          <div class="card diff-card">
+            <label class="label" for="diff-right">File B (Modified)</label>
+            <textarea id="diff-right" class="textarea code" rows="14" placeholder="Paste second file content..." spellcheck="false"></textarea>
+          </div>
+        </div>
+
+        <div id="diff-output-section" class="card hidden">
+          <div class="card-header">
+            <span class="label">Differences</span>
+            <div class="btn-group">
+              <span id="diff-stats" class="badge"></span>
+              <button class="btn btn-ghost btn-sm" id="diff-clear-btn">Clear</button>
+            </div>
+          </div>
+          <div id="diff-output" class="diff-container"></div>
+        </div>
+
+        <div id="diff-error" class="error-msg hidden"></div>
+      </section>
+
+      <!-- ============ cURL Parser ============ -->
+      <section id="curl-parser" class="panel" role="tabpanel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">cURL Parser</h2>
+            <p class="panel-description">Paste a cURL command to extract the method, URL, headers, query params, and body.</p>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-outline" id="curl-sample-btn">Load Sample</button>
+            <button class="btn btn-primary" id="curl-parse-btn">Parse</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <label class="label" for="curl-input">cURL Command</label>
+          <textarea id="curl-input" class="textarea code" rows="8" placeholder="Paste your cURL command here..." spellcheck="false"></textarea>
+        </div>
+
+        <div id="curl-output-section" class="hidden">
+          <!-- Method & URL -->
+          <div class="card">
+            <div class="card-header">
+              <span class="label">Request</span>
+              <button class="btn btn-ghost btn-sm" id="curl-copy-url-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy URL
+              </button>
+            </div>
+            <div class="parsed-row">
+              <span class="parsed-label">Method</span>
+              <span id="curl-method" class="parsed-value badge-method"></span>
+            </div>
+            <div class="parsed-row">
+              <span class="parsed-label">URL</span>
+              <code id="curl-url" class="parsed-value code-inline"></code>
+            </div>
+          </div>
+
+          <!-- Query Params -->
+          <div id="curl-params-section" class="card hidden">
+            <div class="card-header">
+              <span class="label">Query Parameters</span>
+              <button class="btn btn-ghost btn-sm" id="curl-copy-params-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy
+              </button>
+            </div>
+            <table class="parsed-table" id="curl-params-table">
+              <thead><tr><th>Key</th><th>Value</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- Headers -->
+          <div id="curl-headers-section" class="card hidden">
+            <div class="card-header">
+              <span class="label">Headers</span>
+              <button class="btn btn-ghost btn-sm" id="curl-copy-headers-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy JSON
+              </button>
+            </div>
+            <table class="parsed-table" id="curl-headers-table">
+              <thead><tr><th>Header</th><th>Value</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- Body -->
+          <div id="curl-body-section" class="card hidden">
+            <div class="card-header">
+              <span class="label">Body</span>
+              <button class="btn btn-ghost btn-sm" id="curl-copy-body-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy
+              </button>
+            </div>
+            <pre id="curl-body-output" class="output code"></pre>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="label">Reconstructed cURL</span>
+              <button class="btn btn-ghost btn-sm" id="curl-copy-reconstructed-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy
+              </button>
+            </div>
+            <pre id="curl-reconstructed" class="output code"></pre>
+          </div>
+        </div>
+
+        <div id="curl-error" class="error-msg hidden"></div>
+      </section>
+
+      <!-- ============ Cookie Parser ============ -->
+      <section id="cookie-parser" class="panel" role="tabpanel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Cookie Parser</h2>
+            <p class="panel-description">Paste cookie strings (from document.cookie, Set-Cookie headers, or request headers) to parse them into a readable table.</p>
+          </div>
+          <div class="btn-group">
+            <select id="cookie-format" class="select">
+              <option value="auto">Auto-detect</option>
+              <option value="header">Cookie Header (name=value; name=value)</option>
+              <option value="set-cookie">Set-Cookie (with attributes)</option>
+            </select>
+            <button class="btn btn-outline" id="cookie-sample-btn">Load Sample</button>
+            <button class="btn btn-primary" id="cookie-parse-btn">Parse</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <label class="label" for="cookie-input">Cookie String</label>
+          <textarea id="cookie-input" class="textarea code" rows="6" placeholder="Paste your cookie string here...&#10;&#10;Examples:&#10;  session=abc123; theme=dark; lang=en&#10;  Set-Cookie: id=abc; Path=/; HttpOnly; Secure; SameSite=Lax" spellcheck="false"></textarea>
+        </div>
+
+        <div id="cookie-output-section" class="hidden">
+          <div class="card">
+            <div class="card-header">
+              <span class="label">Parsed Cookies</span>
+              <div class="btn-group">
+                <span id="cookie-count" class="badge"></span>
+                <button class="btn btn-ghost btn-sm" id="cookie-copy-json-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  Copy JSON
+                </button>
+                <button class="btn btn-ghost btn-sm" id="cookie-clear-btn">Clear</button>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table class="parsed-table" id="cookie-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Value</th>
+                    <th>Domain</th>
+                    <th>Path</th>
+                    <th>Expires</th>
+                    <th>Flags</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Decoded values -->
+          <div id="cookie-decoded-section" class="card hidden">
+            <div class="card-header">
+              <span class="label">Decoded Values</span>
+            </div>
+            <div id="cookie-decoded" class="output code" style="max-height:40vh;"></div>
+          </div>
+        </div>
+
+        <div id="cookie-error" class="error-msg hidden"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- App scripts -->
+  <script src="js/app.js"></script>
+  <script src="js/gcp-parser.js"></script>
+  <script src="js/json-viewer.js"></script>
+  <script src="js/diff-tool.js"></script>
+  <script src="js/curl-parser.js"></script>
+  <script src="js/cookie-parser.js"></script>
+</body>
+</html>
