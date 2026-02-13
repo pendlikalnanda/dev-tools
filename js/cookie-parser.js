@@ -21,6 +21,32 @@
 
   let lastParsedCookies = [];
 
+  /**
+   * Safely decode a URL-encoded string.
+   * Only decodes if the value contains valid %XX sequences.
+   * Returns { decoded, wasEncoded } where wasEncoded is true if decoding changed the value.
+   */
+  function safeDecode(value) {
+    // Check if value contains any valid percent-encoded sequences
+    if (!/%[0-9A-Fa-f]{2}/.test(value)) {
+      return { decoded: value, wasEncoded: false };
+    }
+    try {
+      const decoded = decodeURIComponent(value);
+      return { decoded, wasEncoded: decoded !== value };
+    } catch (_) {
+      // Contains % but not valid encoding -- try replacing only valid sequences
+      try {
+        const decoded = value.replace(/%([0-9A-Fa-f]{2})/g, (_, hex) => {
+          return String.fromCharCode(parseInt(hex, 16));
+        });
+        return { decoded, wasEncoded: decoded !== value };
+      } catch (_2) {
+        return { decoded: value, wasEncoded: false };
+      }
+    }
+  }
+
   // ---- Sample cookies ----
   const SAMPLE_HEADER = `session=abc123def456; theme=dark; lang=en-US; _ga=GA1.2.123456789.1234567890; user_prefs=%7B%22notifications%22%3Atrue%2C%22timezone%22%3A%22UTC%22%7D; csrf_token=a1b2c3d4e5f6; _fbp=fb.1.1234567890.987654321`;
 
@@ -54,15 +80,12 @@ Set-Cookie: _ga=GA1.2.123456789.1234567890; Domain=.example.com; Path=/; Expires
 
       if (!name) return;
 
-      let decoded = value;
-      try {
-        decoded = decodeURIComponent(value);
-      } catch (_) {}
+      const { decoded, wasEncoded } = safeDecode(value);
 
       cookies.push({
         name,
         value,
-        decoded: decoded !== value ? decoded : null,
+        decoded: wasEncoded ? decoded : null,
         domain: '',
         path: '',
         expires: '',
@@ -103,15 +126,12 @@ Set-Cookie: _ga=GA1.2.123456789.1234567890; Domain=.example.com; Path=/; Expires
 
       if (!name) return;
 
-      let decoded = value;
-      try {
-        decoded = decodeURIComponent(value);
-      } catch (_) {}
+      const { decoded, wasEncoded } = safeDecode(value);
 
       const cookie = {
         name,
         value,
-        decoded: decoded !== value ? decoded : null,
+        decoded: wasEncoded ? decoded : null,
         domain: '',
         path: '',
         expires: '',
@@ -226,16 +246,29 @@ Set-Cookie: _ga=GA1.2.123456789.1234567890; Domain=.example.com; Path=/; Expires
 
     // Show decoded values section if any values were URL-encoded
     if (hasDecoded) {
-      const decodedItems = cookies.filter(c => c.decoded).map(c => {
-        let display = c.decoded;
+      decodedEl.innerHTML = '';
+      cookies.filter(c => c.decoded).forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'decoded-item';
+
+        const label = document.createElement('strong');
+        label.textContent = c.name + ':';
+        item.appendChild(label);
+        item.appendChild(document.createTextNode('\n'));
+
         // Try to pretty-print if it looks like JSON
         const jsonResult = tryParseJSON(c.decoded);
         if (jsonResult.data !== null) {
-          display = JSON.stringify(jsonResult.data, null, 2);
+          const pre = document.createElement('pre');
+          pre.className = 'decoded-json';
+          pre.innerHTML = syntaxHighlightJSON(JSON.stringify(jsonResult.data, null, 2));
+          item.appendChild(pre);
+        } else {
+          item.appendChild(document.createTextNode(c.decoded));
         }
-        return `<div class="decoded-item"><strong>${escapeHTML(c.name)}</strong>:\n${escapeHTML(display)}</div>`;
+
+        decodedEl.appendChild(item);
       });
-      decodedEl.innerHTML = decodedItems.join('\n');
       showEl(decodedSection);
     } else {
       hideEl(decodedSection);

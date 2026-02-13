@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dev Tools</title>
 
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='16 18 22 12 16 6'%3E%3C/polyline%3E%3Cpolyline points='8 6 2 12 8 18'%3E%3C/polyline%3E%3C/svg%3E">
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,6 +35,12 @@
           <button class="tab" role="tab" data-tab="curl-parser" aria-selected="false">cURL Parser</button>
           <button class="tab" role="tab" data-tab="cookie-parser" aria-selected="false">Cookie Parser</button>
         </nav>
+        <button class="btn btn-ghost theme-toggle" id="theme-toggle" title="Toggle dark/light mode" aria-label="Toggle theme">
+          <!-- Sun icon (shown in dark mode) -->
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <!-- Moon icon (shown in light mode) -->
+          <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
       </div>
     </header>
 
@@ -125,6 +134,14 @@
           <div id="jv-path-bar" class="path-bar hidden">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
             <code id="jv-path-text"></code>
+          </div>
+
+          <!-- Properties panel -->
+          <div id="jv-props-panel" class="props-panel hidden">
+            <table class="props-table">
+              <thead><tr><th>Property</th><th>Value</th></tr></thead>
+              <tbody id="jv-props-body"></tbody>
+            </table>
           </div>
 
           <!-- Formatted view -->
@@ -293,18 +310,20 @@
             <p class="panel-description">Paste cookie strings (from document.cookie, Set-Cookie headers, or request headers) to parse them into a readable table.</p>
           </div>
           <div class="btn-group">
-            <select id="cookie-format" class="select">
-              <option value="auto">Auto-detect</option>
-              <option value="header">Cookie Header (name=value; name=value)</option>
-              <option value="set-cookie">Set-Cookie (with attributes)</option>
-            </select>
             <button class="btn btn-outline" id="cookie-sample-btn">Load Sample</button>
             <button class="btn btn-primary" id="cookie-parse-btn">Parse</button>
           </div>
         </div>
 
         <div class="card">
-          <label class="label" for="cookie-input">Cookie String</label>
+          <div class="card-label-row">
+            <label class="label" for="cookie-input">Cookie String</label>
+            <select id="cookie-format" class="select select-sm">
+              <option value="auto">Auto-detect</option>
+              <option value="header">Cookie Header</option>
+              <option value="set-cookie">Set-Cookie</option>
+            </select>
+          </div>
           <textarea id="cookie-input" class="textarea code" rows="6" placeholder="Paste your cookie string here...&#10;&#10;Examples:&#10;  session=abc123; theme=dark; lang=en&#10;  Set-Cookie: id=abc; Path=/; HttpOnly; Secure; SameSite=Lax" spellcheck="false"></textarea>
         </div>
 

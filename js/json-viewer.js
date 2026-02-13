@@ -30,8 +30,73 @@
   const formattedView = document.getElementById('jv-formatted-view');
   const treeView = document.getElementById('jv-tree-view');
 
+  const propsPanel = document.getElementById('jv-props-panel');
+  const propsBody = document.getElementById('jv-props-body');
+
   let currentData = null;
   let currentFormatted = '';
+
+  /**
+   * Create a type badge span for the tree view.
+   */
+  function createTypeBadge(type) {
+    const badge = document.createElement('span');
+    badge.className = 'type-badge type-' + type;
+    const labels = { object: '{}', array: '[]', string: '""', number: '#', boolean: 'tf', null: 'null' };
+    badge.textContent = labels[type] || type;
+    badge.title = type.charAt(0).toUpperCase() + type.slice(1);
+    return badge;
+  }
+
+  /**
+   * Get the type string for a value.
+   */
+  function getType(value) {
+    if (value === null) return 'null';
+    if (Array.isArray(value)) return 'array';
+    return typeof value;
+  }
+
+  /**
+   * Show properties panel for a selected node.
+   */
+  function showPropsPanel(key, value, type) {
+    propsBody.innerHTML = '';
+
+    const rows = [
+      ['Key', key],
+      ['Type', type.charAt(0).toUpperCase() + type.slice(1)],
+    ];
+
+    if (type === 'string') {
+      rows.push(['Length', String(value.length)]);
+      rows.push(['Value', value.length > 200 ? value.substring(0, 200) + '...' : value]);
+    } else if (type === 'array') {
+      rows.push(['Length', String(value.length)]);
+    } else if (type === 'object') {
+      rows.push(['Keys', String(Object.keys(value).length)]);
+    } else if (type === 'number') {
+      rows.push(['Value', String(value)]);
+    } else if (type === 'boolean') {
+      rows.push(['Value', String(value)]);
+    } else if (type === 'null') {
+      rows.push(['Value', 'null']);
+    }
+
+    rows.forEach(([prop, val]) => {
+      const tr = document.createElement('tr');
+      const tdProp = document.createElement('td');
+      tdProp.textContent = prop;
+      const tdVal = document.createElement('td');
+      tdVal.textContent = val;
+      tdVal.className = 'props-value';
+      tr.appendChild(tdProp);
+      tr.appendChild(tdVal);
+      propsBody.appendChild(tr);
+    });
+
+    showEl(propsPanel);
+  }
 
   // ---- Sample JSON ----
   const SAMPLE_JSON = JSON.stringify({
@@ -128,15 +193,15 @@
   function buildTree(value, key, isRoot) {
     const node = document.createElement('div');
     node.className = 'tree-node';
+    const type = getType(value);
 
     if (value !== null && typeof value === 'object') {
       const isArray = Array.isArray(value);
-      const entries = isArray ? value : Object.entries(value);
       const count = isArray ? value.length : Object.keys(value).length;
       const openBracket = isArray ? '[' : '{';
       const closeBracket = isArray ? ']' : '}';
 
-      // Header line (toggle + key + bracket + count)
+      // Header line (toggle + badge + key + bracket + count)
       const headerLine = document.createElement('div');
       headerLine.className = 'tree-line';
 
@@ -145,6 +210,9 @@
       toggle.innerHTML = '&#9660;'; // ▼
       toggle.title = 'Collapse';
       headerLine.appendChild(toggle);
+
+      // Type badge
+      headerLine.appendChild(createTypeBadge(isArray ? 'array' : 'object'));
 
       if (!isRoot) {
         const keySpan = document.createElement('span');
@@ -164,8 +232,10 @@
       sizeSpan.textContent = isArray ? `${count} items` : `${count} keys`;
       headerLine.appendChild(sizeSpan);
 
-      // Path data
+      // Path data + store value reference for props panel
       headerLine.dataset.path = key;
+      headerLine._nodeValue = value;
+      headerLine._nodeType = isArray ? 'array' : 'object';
 
       node.appendChild(headerLine);
 
@@ -201,11 +271,9 @@
         collapsed = !collapsed;
         children.classList.toggle('tree-collapsed-children', collapsed);
         closeLine.classList.toggle('hidden', collapsed);
-        sizeSpan.style.display = collapsed ? 'inline' : 'inline';
         toggle.innerHTML = collapsed ? '&#9654;' : '&#9660;'; // ▶ / ▼
         toggle.title = collapsed ? 'Expand' : 'Collapse';
 
-        // Show inline preview when collapsed
         if (collapsed) {
           const preview = isArray ? `[...${count} items]` : `{...${count} keys}`;
           sizeSpan.textContent = preview;
@@ -214,15 +282,19 @@
         }
       });
 
-      // Click header line to show path
+      // Click header line to show path + properties
       headerLine.addEventListener('click', () => {
         showPath(headerLine);
+        showPropsPanel(key, value, isArray ? 'array' : 'object');
       });
 
     } else {
       // Primitive value
       const line = document.createElement('div');
       line.className = 'tree-line';
+
+      // Type badge
+      line.appendChild(createTypeBadge(type));
 
       if (!isRoot) {
         const keySpan = document.createElement('span');
@@ -233,30 +305,44 @@
       }
 
       const valSpan = document.createElement('span');
+      valSpan.className = 'tree-value-clickable';
       if (typeof value === 'string') {
-        valSpan.className = 'tree-string';
-        // Truncate long strings in tree
+        valSpan.classList.add('tree-string');
         const displayVal = value.length > 120 ? value.substring(0, 120) + '...' : value;
         valSpan.textContent = `"${displayVal}"`;
-        valSpan.title = value;
+        valSpan.title = 'Click to copy value';
       } else if (typeof value === 'number') {
-        valSpan.className = 'tree-number';
+        valSpan.classList.add('tree-number');
         valSpan.textContent = String(value);
+        valSpan.title = 'Click to copy value';
       } else if (typeof value === 'boolean') {
-        valSpan.className = 'tree-boolean';
+        valSpan.classList.add('tree-boolean');
         valSpan.textContent = String(value);
+        valSpan.title = 'Click to copy value';
       } else if (value === null) {
-        valSpan.className = 'tree-null';
+        valSpan.classList.add('tree-null');
         valSpan.textContent = 'null';
+        valSpan.title = 'Click to copy value';
       }
+
+      // Click-to-copy on the value
+      valSpan.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const copyVal = value === null ? 'null' : typeof value === 'string' ? value : String(value);
+        copyToClipboard(copyVal, 'Value');
+      });
+
       line.appendChild(valSpan);
 
       // Path data
       line.dataset.path = key;
+      line._nodeValue = value;
+      line._nodeType = type;
 
-      // Click to show path
+      // Click to show path + properties
       line.addEventListener('click', () => {
         showPath(line);
+        showPropsPanel(key, value, type);
       });
 
       node.appendChild(line);
@@ -632,6 +718,7 @@
     currentFormatted = '';
     hideEl(outputSection);
     hideEl(pathBar);
+    hideEl(propsPanel);
     hideError(errorEl);
     searchInput.value = '';
     searchCount.textContent = '';
