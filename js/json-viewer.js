@@ -37,18 +37,6 @@
   let currentFormatted = '';
 
   /**
-   * Create a type badge span for the tree view.
-   */
-  function createTypeBadge(type) {
-    const badge = document.createElement('span');
-    badge.className = 'type-badge type-' + type;
-    const labels = { object: '{}', array: '[]', string: '""', number: '#', boolean: 'tf', null: 'null' };
-    badge.textContent = labels[type] || type;
-    badge.title = type.charAt(0).toUpperCase() + type.slice(1);
-    return badge;
-  }
-
-  /**
    * Get the type string for a value.
    */
   function getType(value) {
@@ -211,9 +199,6 @@
       toggle.title = 'Collapse';
       headerLine.appendChild(toggle);
 
-      // Type badge
-      headerLine.appendChild(createTypeBadge(isArray ? 'array' : 'object'));
-
       if (!isRoot) {
         const keySpan = document.createElement('span');
         keySpan.className = 'tree-key';
@@ -292,9 +277,6 @@
       // Primitive value
       const line = document.createElement('div');
       line.className = 'tree-line';
-
-      // Type badge
-      line.appendChild(createTypeBadge(type));
 
       if (!isRoot) {
         const keySpan = document.createElement('span');

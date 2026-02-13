@@ -658,34 +658,6 @@ body {
   cursor: default;
 }
 
-/* ---------- Type Badges ---------- */
-.type-badge {
-  display: inline-block;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.5625rem;
-  font-weight: 600;
-  padding: 0 0.25rem;
-  border-radius: 3px;
-  margin-right: 0.25rem;
-  vertical-align: middle;
-  line-height: 1.4;
-  letter-spacing: 0.02em;
-}
-
-.type-object { background: hsl(221 70% 92%); color: hsl(221 70% 40%); }
-.type-array  { background: hsl(142 60% 90%); color: hsl(142 60% 30%); }
-.type-string { background: hsl(142 50% 90%); color: hsl(142 70% 29%); }
-.type-number { background: hsl(221 70% 92%); color: hsl(221 80% 45%); }
-.type-boolean { background: hsl(270 60% 92%); color: hsl(270 70% 45%); }
-.type-null   { background: hsl(0 60% 92%); color: hsl(0 70% 45%); }
-
-[data-theme="dark"] .type-object { background: hsl(221 40% 18%); color: hsl(221 80% 70%); }
-[data-theme="dark"] .type-array  { background: hsl(142 30% 15%); color: hsl(142 60% 60%); }
-[data-theme="dark"] .type-string { background: hsl(142 30% 15%); color: hsl(142 60% 60%); }
-[data-theme="dark"] .type-number { background: hsl(221 40% 18%); color: hsl(221 80% 70%); }
-[data-theme="dark"] .type-boolean { background: hsl(270 30% 18%); color: hsl(270 70% 70%); }
-[data-theme="dark"] .type-null   { background: hsl(0 40% 15%); color: hsl(0 70% 65%); }
-
 /* ---------- Properties Panel ---------- */
 .props-panel {
   margin-bottom: 0.75rem;
