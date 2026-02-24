@@ -17,6 +17,7 @@
   const formatBtn = document.getElementById('jv-format-btn');
   const copyBtn = document.getElementById('jv-copy-btn');
   const minifyBtn = document.getElementById('jv-minify-btn');
+  const removeWsBtn = document.getElementById('jv-remove-ws-btn');
   const clearBtn = document.getElementById('jv-clear-btn');
   const sampleBtn = document.getElementById('jv-sample-btn');
   const expandAllBtn = document.getElementById('jv-expand-all');
@@ -691,6 +692,13 @@
     if (currentData !== null) {
       const minified = JSON.stringify(currentData);
       copyToClipboard(minified, 'Minified JSON');
+    }
+  });
+
+  removeWsBtn.addEventListener('click', () => {
+    if (currentData !== null) {
+      inputEl.value = JSON.stringify(currentData);
+      showToast('Whitespace removed');
     }
   });
 
